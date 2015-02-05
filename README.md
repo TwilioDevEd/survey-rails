@@ -45,7 +45,7 @@ rake test
 rails server
 </pre>
 
-7) Check it out at [![localhost:3000/!](http://localhost:3000/)
+7) Check it out at [localhost:3000/](http://localhost:3000/)
 
 ## Meta 
 
