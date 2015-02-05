@@ -41,7 +41,7 @@ class SurveysController < ApplicationController
     end
     @survey.save
     puts 'survey'
-    head 200
+    redirect_to(:action => :index) and return
   end
 
    # GET /api/get_answer

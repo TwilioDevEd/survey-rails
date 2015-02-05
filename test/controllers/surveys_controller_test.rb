@@ -13,7 +13,7 @@ class SurveysControllerTest < ActionController::TestCase
 
   test "should get new survey questions" do
     get :import
-    assert_response 200
+    assert_response 302 # redirect to home page
   end
 
   test "should serve up TwiMl at connect_call" do
