@@ -1,0 +1,23 @@
+{
+  "name": "Automated Surveys: Twilio & Rails",
+  "description": "An example of implementing automated voice surveys on Rails",
+  "keywords": [
+    "Ruby on Rails",
+    "Ruby",
+    "API",
+    "twilio",
+    "Rails",
+    "Tutorial",
+    "Telephone API",
+    "Voice API",
+    "Surveys",
+    "IVR",
+    "Automated Telephone",
+    "Automated Surveys",
+    "Demo"
+  ],
+  "website": "https://twilio.com/docs/howto/survey-walkthrough",
+  "repository": "https://github.com/TwilioDevEd/survey-rails",
+  "logo": "https://s3-us-west-2.amazonaws.com/deved/twilio-logo.png",
+  "success_url": "/"
+}
