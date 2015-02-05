@@ -1,28 +1,54 @@
-== README
+# Automated Surveys powered by Twilio - Ruby on Rails
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+An example application implementing Automated Voice Surveys using Twilio.  For a
+step-by-step tutorial, [visit this link](https://twilio.com/docs/howto/surveys-walkthrough).
 
-Things you may want to cover:
+Deploy this example app to Heroku now!
 
-* Ruby version
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/TwilioDevEd/survey-rails)
 
-* System dependencies
+## Installation
 
-* Configuration
+To run this locally on your machine:
 
-* Database creation
+1) Grab latest source
+<pre>
+git clone git://github.com/TwilioDevEd/survey-rails.git 
+</pre>
 
-* Database initialization
+2) Navigate to folder and run
+<pre>
+bundle install
+</pre>
 
-* How to run the test suite
+3) Make sure postgres is installed locally
+<pre>
+gem install pg 
+</pre>
+* or for peeps using homebrew
+<pre>
+gem install pg -- --with-pg-config=/usr/local/bin/pg_config
+</pre>
 
-* Services (job queues, cache servers, search engines, etc.)
+4) Create the Database and run migrations
+<pre>
+rake db:create db:migrate
+</pre>
 
-* Deployment instructions
+5) Make sure the tests succeed
+<pre>
+rake test
+</pre>
 
-* ...
+6) Run the server
+<pre>
+rails server
+</pre>
 
+7) Check it out at [![localhost:3000/!](http://localhost:3000/)
 
-Please feel free to use a different markup language if you do not plan to run
-<tt>rake doc:app</tt>.
+## Meta 
+
+* No warranty expressed or implied.  Software is as is. Diggity.
+* [MIT License](http://www.opensource.org/licenses/mit-license.html)
+* Lovingly crafted by Twilio Developer Education.
