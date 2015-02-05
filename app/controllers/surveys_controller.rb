@@ -64,9 +64,6 @@ class SurveysController < ApplicationController
     @current_answer = @caller_response.survey_answers.where(answer: nil).first
     @current_answer.update(answer: input)
 
-    puts "$$$$$$$$$$$$$$$$$$$$$$$$ CURRENT ANSWER $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
-    puts @current_answer[:answer]
-
     # redirect '/call' unless input
     redirect_to(:action => :connect_call) and return
   end
@@ -96,9 +93,9 @@ class SurveysController < ApplicationController
 
     end
 
-    # Check if the caller has completed the survey
     @unanswered_questions = @caller_response.survey_answers.where(answer: nil)
-
+    
+    # Check if the caller has any unanswered questions in this survey
     if @unanswered_questions.length > 0
       # Get the id for the question associated with the first unanswered survey_answer
       @next_question_id = @unanswered_questions.first[:survey_question_id]
@@ -123,8 +120,10 @@ class SurveysController < ApplicationController
 
       end
 
+    # Looks like the caller is done with the survey
     else
-      puts "Caller has taken this survey already"
+      # For testing
+      puts "Caller has no survey available"
 
       # Respond with some TwiML to kick-off the survey
       response = Twilio::TwiML::Response.new do |r|

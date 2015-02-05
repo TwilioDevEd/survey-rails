@@ -7,7 +7,6 @@ class CreateSurveys < ActiveRecord::Migration
 
     create_table :survey_questions do |t|
       t.text :body
-      t.boolean :input_required
       t.boolean :recording
       t.belongs_to :survey, index: true
       t.timestamps null: false
