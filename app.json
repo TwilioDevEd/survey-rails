@@ -16,6 +16,9 @@
     "Automated Surveys",
     "Demo"
   ],
+  "scripts": {
+    "postdeploy": "rake questions:import"
+  },
   "website": "https://twilio.com/docs/howto/survey-walkthrough",
   "repository": "https://github.com/TwilioDevEd/survey-rails",
   "logo": "https://s3-us-west-2.amazonaws.com/deved/twilio-logo.png",
