@@ -2,10 +2,7 @@ Rails.application.routes.draw do
   resources :surveys
 
   # Root of the app
-  root 'surveys#import'
-  
-  # import surveys
-  get 'import' => 'surveys#import'
+  root 'surveys#index'
 
   # webhook for Twilio survey number
   match 'api/connect_call' => 'surveys#connect_call', via: [:get, :post]
