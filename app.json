@@ -19,8 +19,11 @@
   "scripts": {
     "postdeploy": "rake questions:import"
   },
-  "website": "https://twilio.com/docs/howto/survey-walkthrough",
+  "website": "https://twilio.com/docs/howto/automated-survey/ruby/rails",
   "repository": "https://github.com/TwilioDevEd/survey-rails",
   "logo": "https://s3-us-west-2.amazonaws.com/deved/twilio-logo.png",
-  "success_url": "/"
+  "success_url": "/",
+  "addons": [
+    "heroku-postgresql"
+  ]
 }

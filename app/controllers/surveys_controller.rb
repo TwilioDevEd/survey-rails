@@ -12,7 +12,7 @@ class SurveysController < ApplicationController
     @surveys = Survey.all
   end
   
-   # GET /api/get_answer
+  # GET /api/get_answer
   def get_answer
 
     # Check if the answer is a recording or a keypad entry
