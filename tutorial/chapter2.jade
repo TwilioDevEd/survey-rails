@@ -1,0 +1,51 @@
+.step(data-title='The Survey', data-file='lib/tasks/questions.rake', data-highlight='1-19')
+:markdown
+  ### Writing the Survey
+
+  For our purposes we define the survey in as an array within our rake task. For a production app, with marketing dependencies and other teams involved, we would want to grab the survey config from a CMS or some other external service like [Google docs][gdocs].
+
+  You can see here that our survey markup reflects the data model. We named the attributes the same as our Model to make it easier to read. 
+
+  Storing the configuration in an array will allow us to easily loop through it later and create models from the objects. 
+
+  [gdocs]: https://developers.google.com/gdata/articles/gdata_on_rails#AccessingFeeds
+
+.step(data-title='Import', data-file='lib/tasks/questions.rake', data-highlight='')
+:markdown
+  ### Importing the Survey
+
+  Before we can serve up the questions we need to make sure we have a `Survey` object in the database. We decided to create a [rake task][rake] to import our questions. 
+
+  Run `rake questions:import` to run the task yourself.
+
+  Let's take a look at what we do within this task.
+
+  <!-- Rails -->
+  In Rails we use [ActiveRecord][active-record] to create models by calling `Survey.new`. Next we loop through the survey questions, and create a model for each question, then associate those `survey_questions` to their parent Survey.
+
+  [rake]: http://guides.rubyonrails.org/command_line.html#custom-rake-tasks
+  [active-record]: http://guides.rubyonrails.org/active_record_basics.html
+
+.step(data-title='Particpant', data-file='app/controllers/surveys_controller.rb', data-highlight='106-117')
+:markdown
+  ### The Survey Participant
+
+  When Twilio connects the call to our server the first thing we are going to want to do is create a `SurveyParticipant` so we can assign this caller to a `SurveyResponse` and track their state.
+
+  <!-- Rails -->
+  In order to make sure this happens before every Twilio request, we're going to create a private method that gets called before our two Twilio webhook methods. At the top of this file you can see `before_action :set_caller_survey, only: [:get_answer, :connect_call]`
+
+.step(data-title='SurveyResponse', data-file='app/controllers/surveys_controller.rb', data-highlight='42-51')
+:markdown
+  ### The Survey Response
+
+  In order to track the state of where the caller is in the survey we need to create a `SurveyResponse`. We're going to do this at the beginning of `connect_call` which is the endpoint that Twilio will request when the user calls. 
+
+  We'll look more at this controller method in a minute, but for now we'll just look at how we create the `SurveyResponse`.
+
+  <!-- Rails -->
+  We're using .first_or_create() a lot around this controller, which is an ActiveRecord method that makes it very easy to check for a model's existence before creating a new one. 
+
+  You'll also see we associate the new survey_response with the caller by using the '&lt;&lt;' which tells ActiveRecord to add an object to a collection.
+
+  Let's take a look at this part of application in more detail.
