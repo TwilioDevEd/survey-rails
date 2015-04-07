@@ -1,61 +1,61 @@
 .step(data-title='How It Works', data-file='app/controllers/surveys_controller.rb', data-highlight='')
-:markdown
-  ### How It Works
+  :markdown
+    ### How It Works
 
-  Let's go over the steps necessary serve up an Automated Survey from our application:
+    Let's go over the steps necessary serve up an Automated Survey from our application:
 
-  ![Automated Survey Diagram](//s3.amazonaws.com/howtodocs/automated-survey.png)
+    ![Automated Survey Diagram](//s3.amazonaws.com/howtodocs/automated-survey.png)
 
-  1. Your customer calls the survey phone number. 
+    1. Your customer calls the survey phone number. 
 
-  1. Twilio gets the call and makes a request to your application for instructions.  
+    1. Twilio gets the call and makes a request to your application for instructions.  
 
-  1. Your web application serves up [TwiML instructions](/docs/api/twiml) to `Gather` or `Record` the user input.
+    1. Your web application serves up [TwiML instructions](/docs/api/twiml) to `Gather` or `Record` the user input.
 
-  1. After each question, Twilio makes a request to your server with the Customer's input, which your application stores in its database.
+    1. After each question, Twilio makes a request to your server with the Customer's input, which your application stores in its database.
 
-  1. Your application returns a TwiML response to Twilio with instructions to either ask the next question or end the survey.
+    1. Your application returns a TwiML response to Twilio with instructions to either ask the next question or end the survey.
 
-  ### What We Will Learn
+    ### What We Will Learn
 
-  This How-To demonstrates using TwiML to create a call flow using the [Say][say], [Record][record] and [Gather][gather] verbs. You will also learn how to maintain conversation state in a database that spans multiple webhook requests. Beyond an automated survey, these techniques can be applied to implement more complex [IVR](http://en.wikipedia.org/wiki/Interactive_voice_response) systems.
+    This How-To demonstrates using TwiML to create a call flow using the [Say][say], [Record][record] and [Gather][gather] verbs. You will also learn how to maintain conversation state in a database that spans multiple webhook requests. Beyond an automated survey, these techniques can be applied to implement more complex [IVR](http://en.wikipedia.org/wiki/Interactive_voice_response) systems.
 
-  Sound like a plan? Let's get started!
+    Sound like a plan? Let's get started!
 
-  [say]: /docs/api/twiml/say
-  [record]: /docs/api/twiml/record
-  [gather]: /docs/api/twiml/gather
+    [say]: /docs/api/twiml/say
+    [record]: /docs/api/twiml/record
+    [gather]: /docs/api/twiml/gather
 
 .step(data-title='Application Overview', data-file='app/controllers/surveys_controller.rb', data-highlight='')
-:markdown
-  ### Our Rails Application
+  :markdown
+    ### Our Rails Application
 
-  In this example, we're using the [Rails framework](http://guides.rubyonrails.org/getting_started.html) for Ruby. Rails is a popular, robust web framework that provides HTTP request routing, server-side HTML rendering, model creation/validation and a configureable middleware stack to process incoming requests.
+    In this example, we're using the [Rails framework](http://guides.rubyonrails.org/getting_started.html) for Ruby. Rails is a popular, robust web framework that provides HTTP request routing, server-side HTML rendering, model creation/validation and a configureable middleware stack to process incoming requests.
 
-  To run this application locally, you can download it from the links above.  After extracting the app to a local directory, you can run `bundle install` to install all of the dependencies from [rubygems](https://rubygems.org/).
+    To run this application locally, you can download it from the links above.  After extracting the app to a local directory, you can run `bundle install` to install all of the dependencies from [rubygems](https://rubygems.org/).
 
-  Most of the server-side code for this example is found in `app/controllers/surveys_controller.rb`. We'll check that out in a moment, but first let's take a look at the data model.
-  </step>
+    Most of the server-side code for this example is found in `app/controllers/surveys_controller.rb`. We'll check that out in a moment, but first let's take a look at the data model.
+    </step>
 
-  <step title="Database" file="app/models/survey.rb" language="ruby">
-  ### Data Model
+    <step title="Database" file="app/models/survey.rb" language="ruby">
+    ### Data Model
 
-  In order to track our Customers, the Surveys they've participated in, and their status within a survey we need to create some models that we'll store in our database. Let's look at our data model:
+    In order to track our Customers, the Surveys they've participated in, and their status within a survey we need to create some models that we'll store in our database. Let's look at our data model:
 
-  * `Survey`: A Survey is a collection of questions. This has a unique ID and URL that can be used in a Twilio number webhook.  
+    * `Survey`: A Survey is a collection of questions. This has a unique ID and URL that can be used in a Twilio number webhook.  
 
-  * `SurveyQuestion`: A question that can be assigned to a survey. :data_type, :body
+    * `SurveyQuestion`: A question that can be assigned to a survey. :data_type, :body
 
-  * `SurveyParticipant`: An end-user who will take the survey. :phone_number, :name
+    * `SurveyParticipant`: An end-user who will take the survey. :phone_number, :name
 
-  * `SurveyResponse`: A collection of responses to survey questions, associated with a SurveyParticipant and a Survey
+    * `SurveyResponse`: A collection of responses to survey questions, associated with a SurveyParticipant and a Survey
 
-  * `SurveyAnswer`: A response to an individual question, associated with a SurveyResponse and a SurveyQuestion
+    * `SurveyAnswer`: A response to an individual question, associated with a SurveyResponse and a SurveyQuestion
 
-  Here you can see the associations between these models. You can view the migration for this database on [github][github-migration].
+    Here you can see the associations between these models. You can view the migration for this database on [github][github-migration].
 
-  Once you've setup your data model run: 
+    Once you've setup your data model run: 
 
-  `rake db:create db:migrate`
+    `rake db:create db:migrate`
 
-  [github-migration]: https://github.com/TwilioDevEd/survey-rails/blob/master/db/migrate/20150203211243_create_surveys.rb
+    [github-migration]: https://github.com/TwilioDevEd/survey-rails/blob/master/db/migrate/20150203211243_create_surveys.rb

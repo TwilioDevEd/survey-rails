@@ -1,85 +1,85 @@
 .step(data-title='The Call Controller', data-file='app/controllers/surveys_controller.rb', data-highlight='39-104')
-:markdown
-  ### The Call Controller
+  :markdown
+    ### The Call Controller
 
-  Let's take a closer look at the `connect_call` controller. This controller handles our incoming Twilio request and does two things:
+    Let's take a closer look at the `connect_call` controller. This controller handles our incoming Twilio request and does two things:
 
-  1. Serves up the TwiMl instructions for Twilio
+    1. Serves up the TwiMl instructions for Twilio
 
-  1. Manages the conversation state of the survey using the caller's `SurveyResponse`
+    1. Manages the conversation state of the survey using the caller's `SurveyResponse`
 
-  <!-- Rails -->
-  Usually a Rails controller has a template associated with it that renders a webpage. In our case the only request being made will be by Twilio's API, so we don't need a public page. Instead we're using Twilio's Ruby API to render a custom TwiML response as raw XML on the page. 
+    <!-- Rails -->
+    Usually a Rails controller has a template associated with it that renders a webpage. In our case the only request being made will be by Twilio's API, so we don't need a public page. Instead we're using Twilio's Ruby API to render a custom TwiML response as raw XML on the page. 
 
 .step(data-title='Survey Questions', data-file='app/controllers/surveys_controller.rb', data-highlight='49-62')
-:markdown
-  ### Unanswered Questions
-
-  As soon as the call is connected we are going to need to know which question to ask the caller. How are we going to do this? Simply by checking which questions have not been answered. 
-
-  Earlier we made sure the caller or `SurveyParticipant` had a `SurveyResponse` associated with them. Next we to check if there are any answers in the response. If there aren't we simply loop through the SurveyQuestions and create one for each.
-
-  Now every time Twilio requests this controller we can check which `SurveyAnswer` models have `(answer: nil)` and load the first one. Next let's look at how we turn that question into TwiMl instructions.
-
-  .step(data-title='Survey Questions', data-file='app/controllers/surveys_controller.rb', data-highlight='49-62')
   :markdown
-  <step title="TwiMl" file="app/controllers/surveys_controller.rb" highlight="72-89" language="ruby">
-  ### TwiML Instructions
-  TwiML is a set of [simple verbs][verbs] and nouns, written in XML, that Twilio reads as instructions. In this case our instructions inform Twilio to `Say` our survey question to the user and then depedning on the type of question `Gather` their input or `Record` their response. 
+    ### Unanswered Questions
 
-  <!-- Rails -->
-  In order to make writing TwiML as easy as possible, many of the helper libraries have methods that generate TwiML for you. In this case we use twilio-ruby to create a TwiML response. 
+    As soon as the call is connected we are going to need to know which question to ask the caller. How are we going to do this? Simply by checking which questions have not been answered. 
 
-  ### Gather and Record action
+    Earlier we made sure the caller or `SurveyParticipant` had a `SurveyResponse` associated with them. Next we to check if there are any answers in the response. If there aren't we simply loop through the SurveyQuestions and create one for each.
 
-  Both verbs `Gather` and `Record` have an attribute called [`action`][gather-action] which tells Twilio what to do with the input from the caller. In this case we want to make sure to save the caller's input. In this case we're doing that in the `get_answer` method. Let's take a look at this method next.
+    Now every time Twilio requests this controller we can check which `SurveyAnswer` models have `(answer: nil)` and load the first one. Next let's look at how we turn that question into TwiMl instructions.
 
-  [verbs]: /docs/api/twiml#verbs
-  [gather-action]: /docs/api/twiml/gather#attributes-action
+    .step(data-title='Survey Questions', data-file='app/controllers/surveys_controller.rb', data-highlight='49-62')
+    :markdown
+    <step title="TwiMl" file="app/controllers/surveys_controller.rb" highlight="72-89" language="ruby">
+    ### TwiML Instructions
+    TwiML is a set of [simple verbs][verbs] and nouns, written in XML, that Twilio reads as instructions. In this case our instructions inform Twilio to `Say` our survey question to the user and then depedning on the type of question `Gather` their input or `Record` their response. 
+
+    <!-- Rails -->
+    In order to make writing TwiML as easy as possible, many of the helper libraries have methods that generate TwiML for you. In this case we use twilio-ruby to create a TwiML response. 
+
+    ### Gather and Record action
+
+    Both verbs `Gather` and `Record` have an attribute called [`action`][gather-action] which tells Twilio what to do with the input from the caller. In this case we want to make sure to save the caller's input. In this case we're doing that in the `get_answer` method. Let's take a look at this method next.
+
+    [verbs]: /docs/api/twiml#verbs
+    [gather-action]: /docs/api/twiml/gather#attributes-action
 
 .step(data-title='Saving the Answer', data-file='app/controllers/surveys_controller.rb', data-highlight='15-37')
-:markdown
-  ### Saving the Answer
-  Let's take a look at `get_answer` which is the controller method that we pointed our TwiML's action attributes to. This method has to do two important things:
+  :markdown
+    ### Saving the Answer
+    Let's take a look at `get_answer` which is the controller method that we pointed our TwiML's action attributes to. This method has to do two important things:
 
-  1. Save the user input as a `SurveyAnswer` on the `SurveyResponse`
+    1. Save the user input as a `SurveyAnswer` on the `SurveyResponse`
 
-  2. Redirect the incoming Twilio request back to our TwiML to continue the survey.
+    2. Redirect the incoming Twilio request back to our TwiML to continue the survey.
 
-  Before we can save the answer, we need to figure out if this was a keypad response or a voice recording. Luckily Twilio passes some extra [parameters][params] with `Gather` and `Record` requests, [Digits][gather-params] and [RecordingUrl][record-params] respectively. `RecordingUrl` is only sent if a recording was made, so all we need to do is check for that with the request and we'll know what kind of input it was. 
+    Before we can save the answer, we need to figure out if this was a keypad response or a voice recording. Luckily Twilio passes some extra [parameters][params] with `Gather` and `Record` requests, [Digits][gather-params] and [RecordingUrl][record-params] respectively. `RecordingUrl` is only sent if a recording was made, so all we need to do is check for that with the request and we'll know what kind of input it was. 
 
-  If the request was keypad based we'll store the input as a string of Digits. If the request was a voice recording we'll store the RecordingUrl so we can listen to the caller feedback in the future. Who knows - maybe we'll turn it into a ringtone later. We want to keep our options open.
+    If the request was keypad based we'll store the input as a string of Digits. If the request was a voice recording we'll store the RecordingUrl so we can listen to the caller feedback in the future. Who knows - maybe we'll turn it into a ringtone later. We want to keep our options open.
 
-  [params]: /docs/api/twiml/twilio_request#synchronous-request-parameters
-  [gather-params]: /docs/api/twiml/gather#attributes-action-parameters
-  [record-params]: /docs/api/twiml/record#attributes-action-parameters
+    [params]: /docs/api/twiml/twilio_request#synchronous-request-parameters
+    [gather-params]: /docs/api/twiml/gather#attributes-action-parameters
+    [record-params]: /docs/api/twiml/record#attributes-action-parameters
 
 .step(data-title='Add Routes', data-file='config/routes.rb', data-highlight='')
-:markdown
-  ### Create the Routes
-  Before we run our Rails app, we need to create some routes.Aside from our 'root' route, the only routes we need are our webhooks for Twilio.
+  :markdown
+    ### Create the Routes
+    Before we run our Rails app, we need to create some routes.Aside from our 'root' route, the only routes we need are our webhooks for Twilio.
 
-  We're using `match` here to define our routes since we may want to send POST and GET requests to both of our Twilio webhooks, especially if we want to add [transcription][transcribe] in the future.
+    We're using `match` here to define our routes since we may want to send POST and GET requests to both of our Twilio webhooks, especially if we want to add [transcription][transcribe] in the future.
 
-  Now we're ready to deploy our Rails app to the world and setup the Twilio number. 
+    Now we're ready to deploy our Rails app to the world and setup the Twilio number. 
 
-  [transcribe]: /docs/api/twiml/record#attributes-transcribe
+    [transcribe]: /docs/api/twiml/record#attributes-transcribe
 
 .step(data-title='Finish')
-:markdown
-  ### Twilio Voice URL
+  :markdown
+    ### Twilio Voice URL
 
-  Almost done. The last step is pointing a Twilio phone number to our 'api/connect_call' webhook so we can test our survey experience. Let's setup a Twilio number real quick.
+    Almost done. The last step is pointing a Twilio phone number to our 'api/connect_call' webhook so we can test our survey experience. Let's setup a Twilio number real quick.
 
-  If you haven't signed up for Twilio you'll need to [do that now][signup]. Once you've logged in you can [buy a number](/user/account/phone-numbers/search) or use an existing number in your account. 
+    If you haven't signed up for Twilio you'll need to [do that now][signup]. Once you've logged in you can [buy a number](/user/account/phone-numbers/search) or use an existing number in your account. 
 
-  Click on the number and change its Voice URL. 
+    Click on the number and change its Voice URL. 
 
-  ![Number Config](//s3.amazonaws.com/howtodocs/twilio-number.jpg)
+    ![Number Config](//s3.amazonaws.com/howtodocs/twilio-number.jpg)
 
-  ### All Done
-  Congrats! You just learned how to build an automated voice survey. To improve upon this you could transcribe recordings, add more data_types to the SurveyQuestions and send a prize via text to survey participants.
+    ### All Done
+    Congrats! You just learned how to build an automated voice survey. To improve upon this you could transcribe recordings, add more data_types to the SurveyQuestions and send a prize via text to survey participants.
 
-  If you have questions or feedback about this tutorial, please contact [your pals at Twilio](mailto:jreyes@twilio.com) - we'd love to hear from you!
+    If you have questions or feedback about this tutorial, please contact [your pals at Twilio](mailto:jreyes@twilio.com) - we'd love to hear from you!
 
-  [signup]: http://www.twilio.com/try-twilio
+    [signup]: http://www.twilio.com/try-twilio
