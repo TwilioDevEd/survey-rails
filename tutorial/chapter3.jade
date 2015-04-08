@@ -1,6 +1,6 @@
 .step(data-title='The Call Controller', data-file='app/controllers/surveys_controller.rb', data-highlight='39-104')
   :markdown
-    ### The Call Controller
+    ## The Call Controller
 
     Let's take a closer look at the `connect_call` controller. This controller handles our incoming Twilio request and does two things:
 
@@ -13,7 +13,7 @@
 
 .step(data-title='Survey Questions', data-file='app/controllers/surveys_controller.rb', data-highlight='49-62')
   :markdown
-    ### Unanswered Questions
+    ## Unanswered Questions
 
     As soon as the call is connected we are going to need to know which question to ask the caller. How are we going to do this? Simply by checking which questions have not been answered. 
 
@@ -24,13 +24,13 @@
     .step(data-title='Survey Questions', data-file='app/controllers/surveys_controller.rb', data-highlight='49-62')
     :markdown
     <step title="TwiMl" file="app/controllers/surveys_controller.rb" highlight="72-89" language="ruby">
-    ### TwiML Instructions
+    ## TwiML Instructions
     TwiML is a set of [simple verbs][verbs] and nouns, written in XML, that Twilio reads as instructions. In this case our instructions inform Twilio to `Say` our survey question to the user and then depedning on the type of question `Gather` their input or `Record` their response. 
 
     <!-- Rails -->
     In order to make writing TwiML as easy as possible, many of the helper libraries have methods that generate TwiML for you. In this case we use twilio-ruby to create a TwiML response. 
 
-    ### Gather and Record action
+    ## Gather and Record action
 
     Both verbs `Gather` and `Record` have an attribute called [`action`][gather-action] which tells Twilio what to do with the input from the caller. In this case we want to make sure to save the caller's input. In this case we're doing that in the `get_answer` method. Let's take a look at this method next.
 
@@ -39,7 +39,7 @@
 
 .step(data-title='Saving the Answer', data-file='app/controllers/surveys_controller.rb', data-highlight='15-37')
   :markdown
-    ### Saving the Answer
+    ## Saving the Answer
     Let's take a look at `get_answer` which is the controller method that we pointed our TwiML's action attributes to. This method has to do two important things:
 
     1. Save the user input as a `SurveyAnswer` on the `SurveyResponse`
@@ -56,7 +56,7 @@
 
 .step(data-title='Add Routes', data-file='config/routes.rb', data-highlight='')
   :markdown
-    ### Create the Routes
+    ## Create the Routes
     Before we run our Rails app, we need to create some routes.Aside from our 'root' route, the only routes we need are our webhooks for Twilio.
 
     We're using `match` here to define our routes since we may want to send POST and GET requests to both of our Twilio webhooks, especially if we want to add [transcription][transcribe] in the future.
@@ -67,7 +67,7 @@
 
 .step(data-title='Finish')
   :markdown
-    ### Twilio Voice URL
+    ## Twilio Voice URL
 
     Almost done. The last step is pointing a Twilio phone number to our 'api/connect_call' webhook so we can test our survey experience. Let's setup a Twilio number real quick.
 
@@ -77,7 +77,7 @@
 
     ![Number Config](//s3.amazonaws.com/howtodocs/twilio-number.jpg)
 
-    ### All Done
+    ## All Done
     Congrats! You just learned how to build an automated voice survey. To improve upon this you could transcribe recordings, add more data_types to the SurveyQuestions and send a prize via text to survey participants.
 
     If you have questions or feedback about this tutorial, please contact [your pals at Twilio](mailto:jreyes@twilio.com) - we'd love to hear from you!

@@ -1,6 +1,6 @@
 .step(data-title='How It Works', data-file='app/controllers/surveys_controller.rb', data-highlight='')
   :markdown
-    ### How It Works
+    ## How It Works
 
     Let's go over the steps necessary serve up an Automated Survey from our application:
 
@@ -16,7 +16,7 @@
 
     1. Your application returns a TwiML response to Twilio with instructions to either ask the next question or end the survey.
 
-    ### What We Will Learn
+    ## What We Will Learn
 
     This How-To demonstrates using TwiML to create a call flow using the [Say][say], [Record][record] and [Gather][gather] verbs. You will also learn how to maintain conversation state in a database that spans multiple webhook requests. Beyond an automated survey, these techniques can be applied to implement more complex [IVR](http://en.wikipedia.org/wiki/Interactive_voice_response) systems.
 
@@ -28,7 +28,7 @@
 
 .step(data-title='Application Overview', data-file='app/controllers/surveys_controller.rb', data-highlight='')
   :markdown
-    ### Our Rails Application
+    ## Our Rails Application
 
     In this example, we're using the [Rails framework](http://guides.rubyonrails.org/getting_started.html) for Ruby. Rails is a popular, robust web framework that provides HTTP request routing, server-side HTML rendering, model creation/validation and a configureable middleware stack to process incoming requests.
 
@@ -38,7 +38,7 @@
     </step>
 
     <step title="Database" file="app/models/survey.rb" language="ruby">
-    ### Data Model
+    ## Data Model
 
     In order to track our Customers, the Surveys they've participated in, and their status within a survey we need to create some models that we'll store in our database. Let's look at our data model:
 

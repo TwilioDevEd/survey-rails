@@ -1,6 +1,6 @@
 .step(data-title='The Survey', data-file='lib/tasks/questions.rake', data-language='ruby', data-highlight='1-19')
   :markdown
-    ### Writing the Survey
+    ## Writing the Survey
 
     For our purposes we define the survey in as an array within our rake task. For a production app, with marketing dependencies and other teams involved, we would want to grab the survey config from a CMS or some other external service like [Google docs][gdocs].
 
@@ -12,7 +12,7 @@
 
 .step(data-title='Import', data-file='lib/tasks/questions.rake', data-language='ruby', data-highlight='')
   :markdown
-    ### Importing the Survey
+    ## Importing the Survey
 
     Before we can serve up the questions we need to make sure we have a `Survey` object in the database. We decided to create a [rake task][rake] to import our questions. 
 
@@ -28,7 +28,7 @@
 
 .step(data-title='Particpant', data-file='app/controllers/surveys_controller.rb', data-highlight='106-117')
   :markdown
-    ### The Survey Participant
+    ## The Survey Participant
 
     When Twilio connects the call to our server the first thing we are going to want to do is create a `SurveyParticipant` so we can assign this caller to a `SurveyResponse` and track their state.
 
@@ -37,7 +37,7 @@
 
 .step(data-title='SurveyResponse', data-file='app/controllers/surveys_controller.rb', data-highlight='42-51')
   :markdown
-    ### The Survey Response
+    ## The Survey Response
 
     In order to track the state of where the caller is in the survey we need to create a `SurveyResponse`. We're going to do this at the beginning of `connect_call` which is the endpoint that Twilio will request when the user calls. 
 
