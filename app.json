@@ -17,7 +17,7 @@
     "Demo"
   ],
   "scripts": {
-    "postdeploy": "rake questions:import"
+    "postdeploy": "rake db:migrate && rake questions:import"
   },
   "website": "https://twilio.com/docs/howto/automated-survey/ruby/rails",
   "repository": "https://github.com/TwilioDevEd/survey-rails",
