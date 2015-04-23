@@ -1,0 +1,129 @@
+<!DOCTYPE html><html><head><title>Automated Survey</title><style>body, html {
+  height:100%;
+  width:100%;
+  padding:0;
+  margin:0;
+  overflow:hidden;
+  background-color:#ddd;
+}
+.wrapper {
+  height:100%;
+  width:100%;
+}</style><link rel="shortcut icon" href="//twilio.com/bundles/marketing/img/favicons/favicon.ico"><link rel="apple-touch-icon" href="//twilio.com/bundles/marketing/img/favicons/favicon_57.png"><link rel="apple-touch-icon" sizes="72x72" href="//twilio.com/bundles/marketing/img/favicons/favicon_72.png"><link rel="apple-touch-icon" sizes="114x114" href="//twilio.com/bundles/marketing/img/favicons/favicon_114.png"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css"><link rel="stylesheet" href="viewsaurus.css"></head><body><div class="wrapper"><div id="viewsaurus" data-title="Automated Survey"><div class="saurus-panes"><div class="saurus-prose"><div class="saurus-prose-header"><div class="title-outer"><span class="step-title">Automated Survey</span></div></div><div class="saurus-nav-buttons"><div class="saurus-nav-button nav-overview"><div class="saurus-nav-button-inner"><i class="fa fa-fw fa-list"></i></div><div class="nav-divider"></div></div><div class="saurus-nav-button nav-previous"><div class="saurus-nav-button-inner"><a href=""> <i class="fa fa-fw fa-play fa-rotate-180"></i></a></div><div class="nav-divider"></div></div><div class="saurus-nav-button nav-next clickable"><div class="saurus-nav-button-inner"><a href="#1"> <i class="fa fa-fw fa-play"></i></a></div></div><div class="saurus-next-title"><span class="next-title-inner"></span></div></div><div class="saurus-progress-bar"></div><div class="saurus-start"><p>Instantly collect structured data from your users with a survey conducted over a voice call or SMS text messages. Learn how to create your own survey in the language and framework of your choice.</p><a href="#0">Start Tutorial</a></div><div class="saurus-content"><div data-title="Application Setup" class="chapter"><div data-title="How It Works" data-file="app/controllers/surveys_controller.rb" data-highlight="" class="step"><h2 id="how-it-works">How It Works</h2>
+<p>Let&#39;s go over the steps necessary serve up an Automated Survey from our application:</p>
+<p><img src="//s3.amazonaws.com/howtodocs/automated-survey.png" alt="Automated Survey Diagram"></p>
+<ol>
+<li><p>Your customer calls the survey phone number. </p>
+</li>
+<li><p>Twilio gets the call and makes a request to your application for instructions.  </p>
+</li>
+<li><p>Your web application serves up <a href="/docs/api/twiml">TwiML instructions</a> to <code>Gather</code> or <code>Record</code> the user input.</p>
+</li>
+<li><p>After each question, Twilio makes a request to your server with the Customer&#39;s input, which your application stores in its database.</p>
+</li>
+<li><p>Your application returns a TwiML response to Twilio with instructions to either ask the next question or end the survey.</p>
+</li>
+</ol>
+<h2 id="what-we-will-learn">What We Will Learn</h2>
+<p>This How-To demonstrates using TwiML to create a call flow using the <a href="/docs/api/twiml/say">Say</a>, <a href="/docs/api/twiml/record">Record</a> and <a href="/docs/api/twiml/gather">Gather</a> verbs. You will also learn how to maintain conversation state in a database that spans multiple webhook requests. Beyond an automated survey, these techniques can be applied to implement more complex <a href="http://en.wikipedia.org/wiki/Interactive_voice_response">IVR</a> systems.</p>
+<p>Sound like a plan? Let&#39;s get started!</p>
+</div><div data-title="Application Overview" data-file="app/controllers/surveys_controller.rb" data-highlight="" class="step"><h2 id="our-rails-application">Our Rails Application</h2>
+<p>In this example, we&#39;re using the <a href="http://guides.rubyonrails.org/getting_started.html">Rails framework</a> for Ruby. Rails is a popular, robust web framework that provides HTTP request routing, server-side HTML rendering, model creation/validation and a configureable middleware stack to process incoming requests.</p>
+<p>To run this application locally, you can download it from the links above.  After extracting the app to a local directory, you can run <code>bundle install</code> to install all of the dependencies from <a href="https://rubygems.org/">rubygems</a>.</p>
+<p>Most of the server-side code for this example is found in <code>app/controllers/surveys_controller.rb</code>. We&#39;ll check that out in a moment, but first let&#39;s take a look at the data model.
+&lt;/step&gt;</p>
+<p>&lt;step title=&quot;Database&quot; file=&quot;app/models/survey.rb&quot; language=&quot;ruby&quot;&gt;</p>
+<h2 id="data-model">Data Model</h2>
+<p>In order to track our Customers, the Surveys they&#39;ve participated in, and their status within a survey we need to create some models that we&#39;ll store in our database. Let&#39;s look at our data model:</p>
+<ul>
+<li><p><code>Survey</code>: A Survey is a collection of questions. This has a unique ID and URL that can be used in a Twilio number webhook.  </p>
+</li>
+<li><p><code>SurveyQuestion</code>: A question that can be assigned to a survey. :data_type, :body</p>
+</li>
+<li><p><code>SurveyParticipant</code>: An end-user who will take the survey. :phone_number, :name</p>
+</li>
+<li><p><code>SurveyResponse</code>: A collection of responses to survey questions, associated with a SurveyParticipant and a Survey</p>
+</li>
+<li><p><code>SurveyAnswer</code>: A response to an individual question, associated with a SurveyResponse and a SurveyQuestion</p>
+</li>
+</ul>
+<p>Here you can see the associations between these models. You can view the migration for this database on <a href="https://github.com/TwilioDevEd/survey-rails/blob/master/db/migrate/20150203211243_create_surveys.rb">github</a>.</p>
+<p>Once you&#39;ve setup your data model run: </p>
+<p><code>rake db:create db:migrate</code></p>
+</div></div><div data-title="The Survey Object" class="chapter"><div data-title="The Survey" data-file="lib/tasks/questions.rake" data-language="ruby" data-highlight="1-19" class="step"><h2 id="writing-the-survey">Writing the Survey</h2>
+<p>For our purposes we define the survey in as an array within our rake task. For a production app, with marketing dependencies and other teams involved, we would want to grab the survey config from a CMS or some other external service like <a href="https://developers.google.com/gdata/articles/gdata_on_rails#AccessingFeeds">Google docs</a>.</p>
+<p>You can see here that our survey markup reflects the data model. We named the attributes the same as our Model to make it easier to read. </p>
+<p>Storing the configuration in an array will allow us to easily loop through it later and create models from the objects. </p>
+</div><div data-title="Import" data-file="lib/tasks/questions.rake" data-language="ruby" data-highlight="" class="step"><h2 id="importing-the-survey">Importing the Survey</h2>
+<p>Before we can serve up the questions we need to make sure we have a <code>Survey</code> object in the database. We decided to create a <a href="http://guides.rubyonrails.org/command_line.html#custom-rake-tasks">rake task</a> to import our questions. </p>
+<p>Run <code>rake questions:import</code> to run the task yourself.</p>
+<p>Let&#39;s take a look at what we do within this task.</p>
+<p>&lt;!-- Rails --&gt;
+</p>
+<p>In Rails we use <a href="http://guides.rubyonrails.org/active_record_basics.html">ActiveRecord</a> to create models by calling <code>Survey.new</code>. Next we loop through the survey questions, and create a model for each question, then associate those <code>survey_questions</code> to their parent Survey.</p>
+</div><div data-title="Particpant" data-file="app/controllers/surveys_controller.rb" data-highlight="106-117" class="step"><h2 id="the-survey-participant">The Survey Participant</h2>
+<p>When Twilio connects the call to our server the first thing we are going to want to do is create a <code>SurveyParticipant</code> so we can assign this caller to a <code>SurveyResponse</code> and track their state.</p>
+<p>&lt;!-- Rails --&gt;
+</p>
+<p>In order to make sure this happens before every Twilio request, we&#39;re going to create a private method that gets called before our two Twilio webhook methods. At the top of this file you can see <code>before_action :set_caller_survey, only: [:get_answer, :connect_call]</code></p>
+</div><div data-title="SurveyResponse" data-file="app/controllers/surveys_controller.rb" data-highlight="42-51" class="step"><h2 id="the-survey-response">The Survey Response</h2>
+<p>In order to track the state of where the caller is in the survey we need to create a <code>SurveyResponse</code>. We&#39;re going to do this at the beginning of <code>connect_call</code> which is the endpoint that Twilio will request when the user calls. </p>
+<p>We&#39;ll look more at this controller method in a minute, but for now we&#39;ll just look at how we create the <code>SurveyResponse</code>.</p>
+<p>&lt;!-- Rails --&gt;
+</p>
+<p>We&#39;re using .first_or_create() a lot around this controller, which is an ActiveRecord method that makes it very easy to check for a model&#39;s existence before creating a new one. </p>
+<p>You&#39;ll also see we associate the new survey_response with the caller by using the &#39;&lt;&lt;&#39; which tells ActiveRecord to add an object to a collection.</p>
+<p>Let&#39;s take a look at this part of application in more detail.</p>
+</div></div><div data-title="The Interview Loop" class="chapter"><div data-title="The Call Controller" data-file="app/controllers/surveys_controller.rb" data-highlight="39-104" class="step"><h2 id="the-call-controller">The Call Controller</h2>
+<p>Let&#39;s take a closer look at the <code>connect_call</code> controller. This controller handles our incoming Twilio request and does two things:</p>
+<ol>
+<li><p>Serves up the TwiMl instructions for Twilio</p>
+</li>
+<li><p>Manages the conversation state of the survey using the caller&#39;s <code>SurveyResponse</code></p>
+</li>
+</ol>
+<p>&lt;!-- Rails --&gt;
+</p>
+<p>Usually a Rails controller has a template associated with it that renders a webpage. In our case the only request being made will be by Twilio&#39;s API, so we don&#39;t need a public page. Instead we&#39;re using Twilio&#39;s Ruby API to render a custom TwiML response as raw XML on the page. </p>
+</div><div data-title="Survey Questions" data-file="app/controllers/surveys_controller.rb" data-highlight="49-62" class="step"><h2 id="unanswered-questions">Unanswered Questions</h2>
+<p>As soon as the call is connected we are going to need to know which question to ask the caller. How are we going to do this? Simply by checking which questions have not been answered. </p>
+<p>Earlier we made sure the caller or <code>SurveyParticipant</code> had a <code>SurveyResponse</code> associated with them. Next we to check if there are any answers in the response. If there aren&#39;t we simply loop through the SurveyQuestions and create one for each.</p>
+<p>Now every time Twilio requests this controller we can check which <code>SurveyAnswer</code> models have <code>(answer: nil)</code> and load the first one. Next let&#39;s look at how we turn that question into TwiMl instructions.</p>
+<p>.step(data-title=&#39;Survey Questions&#39;, data-file=&#39;app/controllers/surveys_controller.rb&#39;, data-highlight=&#39;49-62&#39;)
+:markdown</p>
+<p>&lt;step title=&quot;TwiMl&quot; file=&quot;app/controllers/surveys_controller.rb&quot; highlight=&quot;72-89&quot; language=&quot;ruby&quot;&gt;</p>
+<h2 id="twiml-instructions">TwiML Instructions</h2>
+<p>TwiML is a set of <a href="/docs/api/twiml#verbs">simple verbs</a> and nouns, written in XML, that Twilio reads as instructions. In this case our instructions inform Twilio to <code>Say</code> our survey question to the user and then depedning on the type of question <code>Gather</code> their input or <code>Record</code> their response. </p>
+<p>&lt;!-- Rails --&gt;
+</p>
+<p>In order to make writing TwiML as easy as possible, many of the helper libraries have methods that generate TwiML for you. In this case we use twilio-ruby to create a TwiML response. </p>
+<h2 id="gather-and-record-action">Gather and Record action</h2>
+<p>Both verbs <code>Gather</code> and <code>Record</code> have an attribute called <a href="/docs/api/twiml/gather#attributes-action"><code>action</code></a> which tells Twilio what to do with the input from the caller. In this case we want to make sure to save the caller&#39;s input. In this case we&#39;re doing that in the <code>get_answer</code> method. Let&#39;s take a look at this method next.</p>
+</div><div data-title="Saving the Answer" data-file="app/controllers/surveys_controller.rb" data-highlight="15-37" class="step"><h2 id="saving-the-answer">Saving the Answer</h2>
+<p>Let&#39;s take a look at <code>get_answer</code> which is the controller method that we pointed our TwiML&#39;s action attributes to. This method has to do two important things:</p>
+<ol>
+<li><p>Save the user input as a <code>SurveyAnswer</code> on the <code>SurveyResponse</code></p>
+</li>
+<li><p>Redirect the incoming Twilio request back to our TwiML to continue the survey.</p>
+</li>
+</ol>
+<p>Before we can save the answer, we need to figure out if this was a keypad response or a voice recording. Luckily Twilio passes some extra <a href="/docs/api/twiml/twilio_request#synchronous-request-parameters">parameters</a> with <code>Gather</code> and <code>Record</code> requests, <a href="/docs/api/twiml/gather#attributes-action-parameters">Digits</a> and <a href="/docs/api/twiml/record#attributes-action-parameters">RecordingUrl</a> respectively. <code>RecordingUrl</code> is only sent if a recording was made, so all we need to do is check for that with the request and we&#39;ll know what kind of input it was. </p>
+<p>If the request was keypad based we&#39;ll store the input as a string of Digits. If the request was a voice recording we&#39;ll store the RecordingUrl so we can listen to the caller feedback in the future. Who knows - maybe we&#39;ll turn it into a ringtone later. We want to keep our options open.</p>
+</div><div data-title="Add Routes" data-file="config/routes.rb" data-highlight="" class="step"><h2 id="create-the-routes">Create the Routes</h2>
+<p>Before we run our Rails app, we need to create some routes.Aside from our &#39;root&#39; route, the only routes we need are our webhooks for Twilio.</p>
+<p>We&#39;re using <code>match</code> here to define our routes since we may want to send POST and GET requests to both of our Twilio webhooks, especially if we want to add <a href="/docs/api/twiml/record#attributes-transcribe">transcription</a> in the future.</p>
+<p>Now we&#39;re ready to deploy our Rails app to the world and setup the Twilio number. </p>
+</div><div data-title="Finish" class="step"><h2 id="twilio-voice-url">Twilio Voice URL</h2>
+<p>Almost done. The last step is pointing a Twilio phone number to our &#39;api/connect_call&#39; webhook so we can test our survey experience. Let&#39;s setup a Twilio number real quick.</p>
+<p>If you haven&#39;t signed up for Twilio you&#39;ll need to <a href="http://www.twilio.com/try-twilio">do that now</a>. Once you&#39;ve logged in you can <a href="/user/account/phone-numbers/search">buy a number</a> or use an existing number in your account. </p>
+<p>Click on the number and change its Voice URL. </p>
+<p><img src="//s3.amazonaws.com/howtodocs/twilio-number.jpg" alt="Number Config"></p>
+<h2 id="all-done">All Done</h2>
+<p>Congrats! You just learned how to build an automated voice survey. To improve upon this you could transcribe recordings, add more data_types to the SurveyQuestions and send a prize via text to survey participants.</p>
+<p>If you have questions or feedback about this tutorial, please contact <a href="mailto:jreyes@twilio.com">your pals at Twilio</a> - we&#39;d love to hear from you!</p>
+</div></div>
+<div class="saurus-files" style="display:none;"><textarea class="saurus-file" data-file="app/controllers/surveys_controller.rb" data-mode="ruby">cmVxdWlyZSAndHdpbGlvLXJ1YnknCnJlcXVpcmUgJ3Nhbml0aXplJwoKCmNsYXNzIFN1cnZleXNDb250cm9sbGVyIDwgQXBwbGljYXRpb25Db250cm9sbGVyCiAgYmVmb3JlX2FjdGlvbiA6c2V0X2NhbGxlcl9zdXJ2ZXksIG9ubHk6IFs6Z2V0X2Fuc3dlciwgOmNvbm5lY3RfY2FsbF0KICBwcm90ZWN0X2Zyb21fZm9yZ2VyeSA6ZXhjZXB0ID0+IFs6Z2V0X2Fuc3dlcl0KCiAgIyBHRVQgL3N1cnZleXMKICAjIEdFVCAvc3VydmV5cy5qc29uCiAgZGVmIGluZGV4CiAgICBAc3VydmV5cyA9IFN1cnZleS5hbGwKICBlbmQKICAKICAjIEdFVCAvYXBpL2dldF9hbnN3ZXIKICBkZWYgZ2V0X2Fuc3dlcgoKICAgICMgQ2hlY2sgaWYgdGhlIGFuc3dlciBpcyBhIHJlY29yZGluZyBvciBhIGtleXBhZCBlbnRyeQogICAgaWYgcGFyYW1zWzpSZWNvcmRpbmdVcmxdLm5pbD8KCiAgICAgICMgSGFuZGxlIGEga2V5cGFkIGFuc3dlcgogICAgICAjIFRoZSBkaWdpdHMgdGhlIHVzZXIgaW5wdXR0ZWQKICAgICAgaW5wdXQgPSBwYXJhbXNbOkRpZ2l0c10KICAgIGVsc2UKCiAgICAgICMgSGFuZGxlIGEgcmVjb3JkaW5nCiAgICAgIGlucHV0ID0gcGFyYW1zWzpSZWNvcmRpbmdVcmxdCiAgICBlbmQKCiAgICAjIEdyYWIgdGhlIGNhbGxlcidzIHJlc3BvbnNlIHRodXMgZmFyCiAgICBAY2FsbGVyX3Jlc3BvbnNlID0gQGNhbGxlci5zdXJ2ZXlfcmVzcG9uc2VzLmZpbmRfYnkoc3VydmV5X2lkOiBAc3VydmV5WzppZF0pCiAgICBAY3VycmVudF9hbnN3ZXIgPSBAY2FsbGVyX3Jlc3BvbnNlLnN1cnZleV9hbnN3ZXJzLndoZXJlKGFuc3dlcjogbmlsKS5maXJzdAogICAgQGN1cnJlbnRfYW5zd2VyLnVwZGF0ZShhbnN3ZXI6IGlucHV0KQoKICAgICMgcmVkaXJlY3QgJy9jYWxsJyB1bmxlc3MgaW5wdXQKICAgIHJlZGlyZWN0X3RvKDphY3Rpb24gPT4gOmNvbm5lY3RfY2FsbCkgYW5kIHJldHVybgogIGVuZAoKICAjIEdFVCBhcGkvY29ubmVjdF9jYWxsCiAgZGVmIGNvbm5lY3RfY2FsbAoKICAgICMgQ3JlYXRlIGEgbmV3IFN1cnZleVJlc3BvbnNlIGlmIGl0IGRvZXNuJ3QgYWxyZWFkeSBleGlzdAogICAgQHN1cnZleV9yZXNwb25zZSA9IFN1cnZleVJlc3BvbnNlLndoZXJlKHN1cnZleV9pZDogQHN1cnZleVs6aWRdLCBzdXJ2ZXlfcGFydGljaXBhbnRfaWQ6IEBjYWxsZXJbOmlkXSkuZmlyc3Rfb3JfY3JlYXRlKCkKCiAgICAjIEFkZCB0aGUgbmV3IFN1cnZleVJlc3BvbnNlIHRvIHRoZSBvd25lcnMKICAgIEBjYWxsZXIuc3VydmV5X3Jlc3BvbnNlcyA8PCBAc3VydmV5X3Jlc3BvbnNlCiAgICBAc3VydmV5LnN1cnZleV9yZXNwb25zZXMgPDwgQHN1cnZleV9yZXNwb25zZQogICAgCiAgICAjIEFzc2lnbiBzb21lIGhhbmR5IHZhcmlhYmxlcyB0byByZWZlcmVuY2UgdGhlIGN1cnJlbnQgc3VydmV5X3Jlc3BvbnNlCiAgICBAY2FsbGVyX3N1cnZleSA9IEBjYWxsZXIuc3VydmV5cy5sYXN0CiAgICBAY2FsbGVyX3Jlc3BvbnNlID0gQGNhbGxlci5zdXJ2ZXlfcmVzcG9uc2VzLndoZXJlKHN1cnZleV9pZDogQHN1cnZleVs6aWRdKS5sYXN0CiAgICAKICAgICMgQ2hlY2sgaWYgdGhlIGNhbGxlciBoYXMgcmVzcG9uZGVkIHRvIGFueSBxdWVzdGlvbnMKICAgIGlmIG5vdCBAY2FsbGVyX3Jlc3BvbnNlLnN1cnZleV9hbnN3ZXJzLmV4aXN0cz8KCiAgICAgICMgQ3JlYXRlIGEgbmV3IGNvbGxlY3Rpb24gb2Ygc3VydmV5X2Fuc3dlcnMgb24gdGhlIGNhbGxlcl9yZXNwb25zZQogICAgICBAY2FsbGVyX3N1cnZleS5zdXJ2ZXlfcXVlc3Rpb25zLmVhY2ggZG8gfHF1ZXN0aW9ufAogICAgICAgIEBzdXJ2ZXlfYW5zd2VyID0gU3VydmV5QW5zd2VyLndoZXJlKHN1cnZleV9yZXNwb25zZV9pZDogQHN1cnZleV9yZXNwb25zZVs6aWRdLCBzdXJ2ZXlfcXVlc3Rpb25faWQ6IHF1ZXN0aW9uWzppZF0pLmZpcnN0X29yX2NyZWF0ZSgpCiAgICAgICAgQGNhbGxlcl9yZXNwb25zZS5zdXJ2ZXlfYW5zd2VycyA8PCBAc3VydmV5X2Fuc3dlcgogICAgICBlbmQKCiAgICBlbmQKCiAgICBAdW5hbnN3ZXJlZF9xdWVzdGlvbnMgPSBAY2FsbGVyX3Jlc3BvbnNlLnN1cnZleV9hbnN3ZXJzLndoZXJlKGFuc3dlcjogbmlsKQogICAgCiAgICAjIENoZWNrIGlmIHRoZSBjYWxsZXIgaGFzIGFueSB1bmFuc3dlcmVkIHF1ZXN0aW9ucyBpbiB0aGlzIHN1cnZleQogICAgaWYgQHVuYW5zd2VyZWRfcXVlc3Rpb25zLmxlbmd0aCA+IDAKICAgICAgIyBHZXQgdGhlIGlkIGZvciB0aGUgcXVlc3Rpb24gYXNzb2NpYXRlZCB3aXRoIHRoZSBmaXJzdCB1bmFuc3dlcmVkIHN1cnZleV9hbnN3ZXIKICAgICAgQG5leHRfcXVlc3Rpb25faWQgPSBAdW5hbnN3ZXJlZF9xdWVzdGlvbnMuZmlyc3RbOnN1cnZleV9xdWVzdGlvbl9pZF0KICAgICAgQG5leHRfcXVlc3Rpb24gPSBAc3VydmV5LnN1cnZleV9xdWVzdGlvbnMuZmluZF9ieShpZDogQG5leHRfcXVlc3Rpb25faWQpCgogICAgICAjIFJlc3BvbmQgd2l0aCBzb21lIFR3aU1MIHRvIGtpY2stb2ZmIHRoZSBzdXJ2ZXkKICAgICAgcmVzcG9uc2UgPSBUd2lsaW86OlR3aU1MOjpSZXNwb25zZS5uZXcgZG8gfHJ8CgogICAgICAgICMgSWYgaXQncyBhbiBpbnB1dCBxdWVzdGlvbiB1c2UgR2F0aGVyCiAgICAgICAgaWYgQG5leHRfcXVlc3Rpb25bOnJlY29yZGluZ10gPT0gZmFsc2UKICAgICAgICAgIHIuR2F0aGVyIDpudW1EaWdpdHMgPT4gJzEnLCA6YWN0aW9uID0+ICcvYXBpL2dldF9hbnN3ZXInLCA6bWV0aG9kID0+ICdnZXQnIGRvIHxnfAogICAgICAgICAgICBnLlNheSBAbmV4dF9xdWVzdGlvbls6Ym9keV0sIHZvaWNlOiAnYWxpY2UnLCBsYW5ndWFnZTogJ2VuLUdCJwogICAgICAgICAgICBnLlNheSAnMCBpcyB0aGUgbG93ZXN0LiA5IGlzIHRoZSBoaWdoZXN0LicsIHZvaWNlOiAnbWFuJywgbGFuZ3VhZ2U6ICdlbi1VUycKICAgICAgICAgIGVuZAoKICAgICAgICAjIElmIGl0J3MgYSBmcmVlLWZvcm0gcXVlc3Rpb24gcmVjb3JkIHRoZSB1c2VyCiAgICAgICAgZWxzZQogICAgICAgICAgci5TYXkgQG5leHRfcXVlc3Rpb25bOmJvZHldLCB2b2ljZTogJ2FsaWNlJywgbGFuZ3VhZ2U6ICdlbi1HQicKICAgICAgICAgIHIuU2F5ICJQbGVhc2UgcmVjb3JkIHlvdXIgcmVzcG9uc2UgYWZ0ZXIgdGhlIGJlZXAuIiwgdm9pY2U6ICdhbGljZScsIGxhbmd1YWdlOiAnZW4tR0InCiAgICAgICAgICByLlJlY29yZCA6dGltZW91dCA9PiAnNScsIDptZXRob2QgPT4gJ2dldCcsIDphY3Rpb24gPT4gJy9hcGkvZ2V0X2Fuc3dlcicsIDpmaW5pc2hPbktleSA9PiAnIycsIDptYXhMZW5ndGggPT4gJzkwJwogICAgICAgIGVuZAoKICAgICAgZW5kCgogICAgIyBMb29rcyBsaWtlIHRoZSBjYWxsZXIgaXMgZG9uZSB3aXRoIHRoZSBzdXJ2ZXkKICAgIGVsc2UKICAgICAgIyBGb3IgdGVzdGluZwogICAgICBwdXRzICJDYWxsZXIgaGFzIG5vIHN1cnZleSBhdmFpbGFibGUiCgogICAgICAjIFJlc3BvbmQgd2l0aCBzb21lIFR3aU1MIHRvIGtpY2stb2ZmIHRoZSBzdXJ2ZXkKICAgICAgcmVzcG9uc2UgPSBUd2lsaW86OlR3aU1MOjpSZXNwb25zZS5uZXcgZG8gfHJ8CiAgICAgICAgci5TYXkgIlRoYW5rIHlvdSBmb3IgdGFraW5nIHRoZSBzdXJ2ZXkuIEluIGFwcHJlY2lhdGlvbiB3ZSB3aWxsIGJlIHNlbmRpbmcgeW91IHNvbWV0aGluZyBzcGVjaWFsLiBZb3VycyB0cnVseSwgVGhlIERldi1FZCB0ZWFtLiIsIHZvaWNlOiAnYWxpY2UnLCBsYW5ndWFnZTogJ2VuLUdCJwogICAgICBlbmQKCiAgICBlbmQKCiAgICByZW5kZXIgdGV4dDogcmVzcG9uc2UudGV4dAogIGVuZAoKICBwcml2YXRlCiAgIyBVc2UgY2FsbGJhY2tzIHRvIHNoYXJlIGNvbW1vbiBzZXR1cCBvciBjb25zdHJhaW50cyBiZXR3ZWVuIGFjdGlvbnMuCiAgZGVmIHNldF9jYWxsZXJfc3VydmV5CiAgICAjIEdldCBwaG9uZV9udW1iZXIgZnJvbSB0aGUgaW5jb21pbmcgR0VUIHJlcXVlc3QgZnJvbSBUd2lsaW8KICAgIEBwaG9uZV9udW1iZXIgPSBTYW5pdGl6ZS5jbGVhbihwYXJhbXNbOkZyb21dKQoKICAgICMgR2V0IGEgc3VydmV5CiAgICBAc3VydmV5ID0gU3VydmV5Lmxhc3QKCiAgICAjIENyZWF0ZSBuZXcgU3VydmV5IFBhcnRpY2lwYW50IHdpdGggcGhvbmVfbnVtYmVyCiAgICBAY2FsbGVyID0gU3VydmV5UGFydGljaXBhbnQud2hlcmUocGhvbmVfbnVtYmVyOiBAcGhvbmVfbnVtYmVyKS5maXJzdF9vcl9jcmVhdGUoKQogIGVuZAoKICAjIE5ldmVyIHRydXN0IHBhcmFtZXRlcnMgZnJvbSB0aGUgc2NhcnkgaW50ZXJuZXQsIG9ubHkgYWxsb3cgdGhlIHdoaXRlIGxpc3QgdGhyb3VnaC4KICBkZWYgc3VydmV5X3BhcmFtcwogICAgcGFyYW1zWzpzdXJ2ZXldCiAgZW5kCmVuZA==</textarea>
+<textarea class="saurus-file" data-file="lib/tasks/questions.rake" data-mode="ruby">IyBJbiBhIHByb2R1Y3Rpb24gYXBwIHRoaXMgd291bGQgbW9zdCBsaWtlbHkgYmUgYW4gZXh0ZXJuYWwgcmVzb3VyY2UgbGlrZSBnb29nbGUgZG9jcyBvciBwdWxsZWQgZnJvbSB5b3VyIG93biBDTVMKU1VSVkVZX1FBUlJBWSA9IFsKICB7CiAgICA6Ym9keSA9PiAiSGVsbG8uIFRoYW5rcyBmb3IgdGFraW5nIHRoZSBUd2lsbGlvIERldmVsb3BlciBFZHVjYXRpb24gc3VydmV5LiBPbiBhIHNjYWxlIG9mIDAgdG8gOSBob3cgd291bGQgeW91IHJhdGUgdGhpcyB0dXRvcmlhbD8gIiwKICAgIDpyZWNvcmRpbmcgPT4gZmFsc2UKICB9LAogIHsKICAgIDpib2R5ID0+ICJPbiBhIHNjYWxlIG9mIDAgdG8gOSBob3cgd291bGQgeW91IHJhdGUgdGhlIGRlc2lnbiBvZiB0aGlzIHR1dG9yaWFsPyIsCiAgICA6cmVjb3JkaW5nID0+IGZhbHNlCiAgfSwKICB7CiAgICA6Ym9keSA9PiAiSW4geW91ciBvd24gd29yZHMgcGxlYXNlIGRlc2NyaWJlIHlvdXIgZmVlbGluZ3MgYWJvdXQgVHdpbGxpbyByaWdodCBub3c/IFByZXNzIHRoZSBwb3VuZCBzaWduIHdoZW4geW91IGFyZSBmaW5pc2hlZC4iLAogICAgOnJlY29yZGluZyA9PiB0cnVlCiAgfSwKICB7CiAgICA6Ym9keSA9PiAiT24gYSBzY2FsZSBvZiA4IHRvIDkgaG93IG11Y2ggZG8gbGlrZSBteSB2b2ljZT8gUGxlYXNlIGJlIGhvbmVzdCwgSSBkaXNsaWtlIGxpYXJzLiIsCiAgICA6cmVjb3JkaW5nID0+IGZhbHNlCiAgfQpdCgpuYW1lc3BhY2UgOnF1ZXN0aW9ucyBkbwogIGRlc2MgIkltcG9ydCBxdWVzdGlvbnMgdG8gZGIgZnJvbSBzdGF0aWMgYXJyYXkiCiAgdGFzayBpbXBvcnQ6IDplbnZpcm9ubWVudCBkbwogICAgQHN1cnZleSA9IFN1cnZleS5uZXcKICAgIEBzdXJ2ZXkuc2F2ZQogICAgU1VSVkVZX1FBUlJBWS5lYWNoIGRvIHxxfAogICAgICBAc3EgPSBAc3VydmV5LnN1cnZleV9xdWVzdGlvbnMuY3JlYXRlKGJvZHk6IHFbOmJvZHldLCByZWNvcmRpbmc6IHFbOnJlY29yZGluZ10pCiAgICBlbmQKICAgIEBzdXJ2ZXkuc2F2ZQogICAgcHV0cyAnU3VydmV5IHF1ZXN0aW9ucyBpbXBvcnRlZC4nCiAgZW5kCgplbmQK</textarea>
+<textarea class="saurus-file" data-file="config/routes.rb" data-mode="ruby">UmFpbHMuYXBwbGljYXRpb24ucm91dGVzLmRyYXcgZG8KICByZXNvdXJjZXMgOnN1cnZleXMKCiAgIyBSb290IG9mIHRoZSBhcHAKICByb290ICdzdXJ2ZXlzI2luZGV4JwoKICAjIHdlYmhvb2sgZm9yIFR3aWxpbyBzdXJ2ZXkgbnVtYmVyCiAgbWF0Y2ggJ2FwaS9jb25uZWN0X2NhbGwnID0+ICdzdXJ2ZXlzI2Nvbm5lY3RfY2FsbCcsIHZpYTogWzpnZXQsIDpwb3N0XQoKICAjIGNhbGxiYWNrIGZvciB1c2VyIGVudHJ5CiAgbWF0Y2ggJ2FwaS9nZXRfYW5zd2VyJyA9PiAnc3VydmV5cyNnZXRfYW5zd2VyJywgdmlhOiBbOmdldCwgOnBvc3RdCgplbmQK</textarea>
+</div>
+</div><div class="saurus-overview"><ul></ul></div></div><div class="saurus-code"><div class="file-path"><span class="crumb-container"></span><i class="fa fa-fw fa-folder"></i></div><div class="saurus-editor"></div></div><div class="saurus-explorer"><div class="saurus-file-list"></div></div></div></div></div><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script><script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script><script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script><script src="ace/ace.js"></script><script src="ace/theme-monokai.js"></script><script src="viewsaurus.js"></script></body></html>
