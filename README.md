@@ -1,7 +1,8 @@
 # Automated Surveys powered by Twilio - Ruby on Rails
 
 An example application implementing Automated Voice Surveys using Twilio.  For a
-step-by-step tutorial, [visit this link](https://twilio.com/docs/howto/surveys-walkthrough).
+step-by-step tutorial, [visit this
+link](https://www.twilio.com/docs/howto/walkthrough/automated-survey/ruby/rails).
 
 Deploy this example app to Heroku now!
 
