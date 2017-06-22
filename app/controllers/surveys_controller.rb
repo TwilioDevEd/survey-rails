@@ -1,17 +1,17 @@
 require 'twilio-ruby'
 require 'sanitize'
-
+require 'pp'
 
 class SurveysController < ApplicationController
   before_action :set_caller_survey, only: [:get_answer, :connect_call]
-  protect_from_forgery :except => [:get_answer]
+  protect_from_forgery :except => [:get_answer, :connect_call]
 
   # GET /surveys
   # GET /surveys.json
   def index
     @surveys = Survey.all
   end
-  
+
   # GET /api/get_answer
   def get_answer
 
