@@ -1,7 +1,7 @@
 # In a production app this would most likely be an external resource like google docs or pulled from your own CMS
 SURVEY_QARRAY = [
   {
-    :body => "Hello. Thanks for taking the Twillio Developer Education survey. On a scale of 0 to 9 how would you rate this tutorial? ",
+    :body => "Hello. Thanks for taking the Twilio Developer Education survey. On a scale of 0 to 9 how would you rate this tutorial? ",
     :recording => false
   },
   {
@@ -9,7 +9,7 @@ SURVEY_QARRAY = [
     :recording => false
   },
   {
-    :body => "In your own words please describe your feelings about Twillio right now? Press the pound sign when you are finished.",
+    :body => "In your own words please describe your feelings about twilio right now? Press the pound sign when you are finished.",
     :recording => true
   },
   {

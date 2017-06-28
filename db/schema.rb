@@ -35,11 +35,10 @@ ActiveRecord::Schema.define(version: 20150203211243) do
 
   create_table "survey_questions", force: true do |t|
     t.text     "body"
-    t.boolean  "input_required"
     t.boolean  "recording"
     t.integer  "survey_id"
-    t.datetime "created_at",     null: false
-    t.datetime "updated_at",     null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   add_index "survey_questions", ["survey_id"], name: "index_survey_questions_on_survey_id", using: :btree
