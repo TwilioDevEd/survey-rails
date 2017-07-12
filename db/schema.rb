@@ -16,7 +16,7 @@ ActiveRecord::Schema.define(version: 20150203211243) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
-  create_table "survey_answers", force: true do |t|
+  create_table "survey_answers", force: :cascade do |t|
     t.text     "answer"
     t.integer  "survey_question_id"
     t.integer  "survey_response_id"
@@ -26,14 +26,14 @@ ActiveRecord::Schema.define(version: 20150203211243) do
 
   add_index "survey_answers", ["survey_response_id"], name: "index_survey_answers_on_survey_response_id", using: :btree
 
-  create_table "survey_participants", force: true do |t|
+  create_table "survey_participants", force: :cascade do |t|
     t.string   "name"
     t.string   "phone_number"
     t.datetime "created_at",   null: false
     t.datetime "updated_at",   null: false
   end
 
-  create_table "survey_questions", force: true do |t|
+  create_table "survey_questions", force: :cascade do |t|
     t.text     "body"
     t.boolean  "recording"
     t.integer  "survey_id"
@@ -43,7 +43,7 @@ ActiveRecord::Schema.define(version: 20150203211243) do
 
   add_index "survey_questions", ["survey_id"], name: "index_survey_questions_on_survey_id", using: :btree
 
-  create_table "survey_responses", force: true do |t|
+  create_table "survey_responses", force: :cascade do |t|
     t.integer  "survey_participant_id"
     t.integer  "survey_id"
     t.integer  "survey_answers_id"
@@ -56,7 +56,7 @@ ActiveRecord::Schema.define(version: 20150203211243) do
   add_index "survey_responses", ["survey_id"], name: "index_survey_responses_on_survey_id", using: :btree
   add_index "survey_responses", ["survey_participant_id"], name: "index_survey_responses_on_survey_participant_id", using: :btree
 
-  create_table "surveys", force: true do |t|
+  create_table "surveys", force: :cascade do |t|
     t.datetime "created_at"
     t.datetime "updated_at"
   end
