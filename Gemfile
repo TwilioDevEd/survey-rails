@@ -11,7 +11,7 @@ gem 'coffee-rails', '~> 4.0.0'
 # Use postgresql as the database for Active Record
 gem 'pg'
 # Twilio REST API.
-gem 'twilio-ruby', '~> 5.0.0-rc23'
+gem 'twilio-ruby', '~> 5.0.0'
 # Use sanitize
 gem 'sanitize'
 # Use jquery as the JavaScript library
