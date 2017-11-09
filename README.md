@@ -8,9 +8,6 @@ An example application implementing Automated Voice Surveys using Twilio.  For a
 step-by-step tutorial, [visit this
 link](https://www.twilio.com/docs/howto/walkthrough/automated-survey/ruby/rails).
 
-Deploy this example app to Heroku now!
-
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/TwilioDevEd/survey-rails)
 
 ## Installation
 
