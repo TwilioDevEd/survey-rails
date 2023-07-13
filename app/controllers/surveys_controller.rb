@@ -74,15 +74,15 @@ class SurveysController < ApplicationController
       # If it's an input question use Gather
       if @next_question[:recording] == false
         g = Twilio::TwiML::Gather.new(:numDigits => '1', :action => "/api/get_answer", :method => 'get')
-        g.say(@next_question[:body], voice: 'alice', language: 'en-GB')
-        g.say('0 is the lowest. 9 is the highest.', voice: 'alice', language: 'en-GB')
+        g.say(@next_question[:body], voice: 'Polly.Amy', language: 'en-GB')
+        g.say('0 is the lowest. 9 is the highest.', voice: 'Polly.Amy', language: 'en-GB')
 
         response.append(g)
 
       # If it's a free-form question record the user
       else
-        response.say(@next_question[:body], voice: 'alice', language: 'en-GB')
-        response.say("Please record your response after the beep.", voice: 'alice', language: 'en-GB')
+        response.say(@next_question[:body], voice: 'Polly.Amy', language: 'en-GB')
+        response.say("Please record your response after the beep.", voice: 'Polly.Amy', language: 'en-GB')
         response.record(:timeout => '5', :method => 'get', :action => '/api/get_answer', :finishOnKey => '#', :maxLength => '90')
       end
 
@@ -94,7 +94,7 @@ class SurveysController < ApplicationController
 
       # Respond with some TwiML to kick-off the survey
       response = Twilio::TwiML::VoiceResponse.new
-      response.say("Thank you for taking the survey. In appreciation we will be sending you something special. Yours truly, The Dev-Ed team.", voice: 'alice', language: 'en-GB')
+      response.say("Thank you for taking the survey. In appreciation we will be sending you something special. Yours truly, The Dev-Ed team.", voice: 'Polly.Amy', language: 'en-GB')
 
     end
     render text: response.to_s
